@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rafay Mustafa | AI EdTech Innovator</title>
+    <meta name="description" content="Portfolio of Rafay Mustafa - AI EdTech researcher and community builder.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#EEEFE8',
+                        ink: '#151515',
+                        brand: {
+                            orange: '#F54E00',
+                            yellow: '#F7C948',
+                            blue: '#2E5EFF',
+                            green: '#3FA772',
+                            pink: '#FF6B9D',
+                            purple: '#8862F1',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        hard: '4px 4px 0 0 #151515',
+                        'hard-lg': '7px 7px 0 0 #151515',
+                        'hard-sm': '2px 2px 0 0 #151515',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+
+    <style>
+        html { scroll-behavior: auto; }
+        body { font-family: 'Inter', sans-serif; background-color: #EEEFE8; }
+        h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Single source of truth for the side margin that reveals the photo wall.
+           Scales smoothly with viewport instead of jumping at one breakpoint,
+           and is applied to BOTH the nav and the main content so the photo
+           wall frames the whole page, not just the hero card. */
+        :root { --edge: clamp(16px, 7vw, 240px); }
+        html.wide-mode { --edge: clamp(12px, 2vw, 60px); }
+        .edge-x { padding-left: var(--edge); padding-right: var(--edge); }
+
+        /* ---- Fixed static photo wall (background layer) ---- */
+        /* PLACEHOLDER PHOTOS: swap the <img src> values inside #photo-wall for your own photos whenever you have them. */
+        #photo-wall {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+        }
+        #photo-wall img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(1) contrast(0.95) brightness(1.05);
+            opacity: 0.8;
+        }
+        #photo-wall .wash {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(238,239,232,0.25), rgba(238,239,232,0.1) 40%, rgba(238,239,232,0.3));
+        }
+
+        /* ---- Fixed side rails (tech stack, like PostHog's home/pricing/docs icons) ---- */
+        .rail-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .rail-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: #151515;
+            border: 2px solid #151515;
+            box-shadow: 3px 3px 0 0 #151515;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            background: #fff;
+        }
+        .rail-item:hover .rail-icon {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 0 #151515;
+        }
+        .rail-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #151515;
+            text-align: center;
+            opacity: 0.75;
+            max-width: 76px;
+            line-height: 1.15;
+        }
+
+        /* ---- Floating "window" card ---- */
+        .window-card {
+            background: rgba(255,255,255,0.97);
+            border: 2px solid #151515;
+            border-radius: 28px;
+            box-shadow: 0 30px 60px -20px rgba(21,21,21,0.35), 8px 8px 0 0 #151515;
+        }
+        .window-chrome {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 2px solid #151515;
+        }
+        .traffic-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #151515; }
+
+        .marker {
+            background: linear-gradient(104deg, transparent 0%, transparent 4%, #F7C948 4%, #F7C948 92%, transparent 92%, transparent 100%);
+            padding: 0 2px;
+        }
+
+        .reveal-up { opacity: 0; transform: translateY(30px); }
+
+        .lift { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .lift:hover { transform: translate(-3px, -3px); }
+
+        .tab-btn { transition: background-color 0.2s ease, color 0.2s ease; }
+
+        /* Custom cursor dot. #cursor-dot itself only ever gets translated (by GSAP);
+           the grow effect is a transform:scale on the inner ring so nothing here
+           ever animates width/height (layout properties). */
+        #cursor-dot {
+            position: fixed; top: 0; left: 0;
+            width: 0; height: 0;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        #cursor-dot .ring {
+            position: absolute; top: 0; left: 0;
+            width: 36px; height: 36px;
+            margin: -18px 0 0 -18px;
+            border: 2px solid #151515;
+            border-radius: 50%;
+            transform: scale(0.44);
+            transition: transform .2s ease, background-color .2s ease;
+        }
+        #cursor-dot.grow .ring { transform: scale(1); background-color: rgba(136,98,241,0.35); }
+        @media (max-width: 1024px), (hover: none) { #cursor-dot { display: none; } }
+    </style>
+</head>
+<body class="text-ink antialiased selection:bg-brand-yellow selection:text-ink">
+
+    <!-- ===================== STATIC BACKGROUND (fixed, does not move) ===================== -->
+    <div id="photo-wall" aria-hidden="true">
+        <img src="https://picsum.photos/seed/rafay01/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay02/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay03/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay04/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay05/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay06/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay07/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay08/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay09/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay10/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay11/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay12/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay13/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay14/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay15/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay16/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay17/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay18/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay19/500/500" alt="">
+        <img src="https://picsum.photos/seed/rafay20/500/500" alt="">
+        <div class="wash"></div>
+    </div>
+
+    <div id="cursor-dot"><div class="ring"></div></div>
+
+    <!-- ===================== TOP NAV (fixed) ===================== -->
+    <nav class="fixed top-0 inset-x-0 z-40">
+        <div class="edge-x h-16 flex items-center justify-between bg-cream/90 backdrop-blur border-b-2 border-ink">
+            <a href="#home" class="font-display text-lg font-bold flex items-center gap-1.5">
+                Rafay<span class="w-2 h-2 rounded-full bg-brand-orange inline-block"></span><span class="text-brand-orange">AI</span>
+            </a>
+            <div class="hidden md:flex items-center gap-1 text-sm font-semibold">
+                <a href="#about" class="px-3 py-2 rounded-full hover:bg-ink/5 transition">About</a>
+                <a href="#experience" class="px-3 py-2 rounded-full hover:bg-ink/5 transition">Experience</a>
+                <a href="#projects" class="px-3 py-2 rounded-full hover:bg-ink/5 transition">Projects</a>
+                <a href="#volunteer" class="px-3 py-2 rounded-full hover:bg-ink/5 transition">Community</a>
+                <a href="#publications" class="px-3 py-2 rounded-full hover:bg-ink/5 transition">Publications</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="hidden sm:inline text-xs font-semibold text-ink/50 hover:text-ink transition">Classic version &rarr;</a>
+                <a href="#contact" class="px-5 py-2 text-sm font-bold text-white bg-brand-orange rounded-full border-2 border-ink shadow-hard-sm hover:shadow-hard hover:-translate-x-0.5 hover:-translate-y-0.5 transition">Get in touch</a>
+                <button id="mobile-menu-btn" class="md:hidden w-9 h-9 flex items-center justify-center border-2 border-ink rounded-full bg-white shadow-hard-sm focus:outline-none">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-cream border-t-2 border-ink">
+            <div class="px-4 pt-2 pb-4 space-y-1">
+                <a href="#about" class="block px-3 py-2.5 text-sm font-semibold hover:bg-white rounded-md" onclick="toggleMobileMenu()">About</a>
+                <a href="#experience" class="block px-3 py-2.5 text-sm font-semibold hover:bg-white rounded-md" onclick="toggleMobileMenu()">Experience</a>
+                <a href="#projects" class="block px-3 py-2.5 text-sm font-semibold hover:bg-white rounded-md" onclick="toggleMobileMenu()">Projects</a>
+                <a href="#volunteer" class="block px-3 py-2.5 text-sm font-semibold hover:bg-white rounded-md" onclick="toggleMobileMenu()">Community</a>
+                <a href="#publications" class="block px-3 py-2.5 text-sm font-semibold hover:bg-white rounded-md" onclick="toggleMobileMenu()">Publications</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===================== LEFT RAIL: tech stack (fixed) ===================== -->
+    <aside class="hidden lg:flex flex-col gap-8 fixed left-4 top-1/2 -translate-y-1/2 z-30">
+        <div class="rail-item"><div class="rail-icon" style="background:#F7C948">Py</div><span class="rail-label">Python</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#FFD9B8">TF</div><span class="rail-label">TensorFlow</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#FFD1E3">PT</div><span class="rail-label">PyTorch</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#D6E0FF">LLM</div><span class="rail-label">LLMs</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#D7F2E3">Gen</div><span class="rail-label">Generative AI</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#E4D6FF">CV</div><span class="rail-label">OpenCV</span></div>
+    </aside>
+
+    <!-- ===================== RIGHT RAIL: tech stack (fixed) ===================== -->
+    <aside class="hidden lg:flex flex-col gap-8 fixed right-4 top-1/2 -translate-y-1/2 z-30">
+        <div class="rail-item"><div class="rail-icon" style="background:#D6E0FF">NLP</div><span class="rail-label">NLP</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#FFD1E3">RL</div><span class="rail-label">Reinforcement Learning</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#D7F2E3">PM</div><span class="rail-label">Project Mgmt</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#FFD9B8">QR</div><span class="rail-label">Qual. Research</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#F7C948">QT</div><span class="rail-label">Quant. Research</span></div>
+        <div class="rail-item"><div class="rail-icon" style="background:#E4D6FF">RN</div><span class="rail-label">React Native</span></div>
+    </aside>
+
+    <!-- ===================== MOBILE TOOLS STRIP (shown below lg, replaces rails) ===================== -->
+    <div class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-cream/95 backdrop-blur border-t-2 border-ink overflow-x-auto whitespace-nowrap px-4 py-2 flex gap-3">
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">Python</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">TensorFlow</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">PyTorch</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">LLMs</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">Generative AI</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">OpenCV</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">NLP</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">Reinforcement Learning</span>
+        <span class="text-[11px] font-bold px-2 py-1 rounded-full border-2 border-ink bg-white">React Native</span>
+    </div>
+
+    <!-- ===================== MOVING OVERLAY: the actual portfolio (scrolls normally) ===================== -->
+    <main class="relative z-20 pt-24 pb-24 edge-x">
+        <div class="max-w-4xl mx-auto window-card overflow-hidden">
+
+            <!-- window chrome -->
+            <div class="window-chrome bg-cream/60">
+                <div class="flex gap-2">
+                    <span class="traffic-dot bg-brand-pink"></span>
+                    <span class="traffic-dot bg-brand-yellow"></span>
+                    <span class="traffic-dot bg-brand-green"></span>
+                </div>
+                <span class="text-xs font-semibold text-ink/50 font-display">rafay.ai/portfolio</span>
+                <div class="flex gap-2">
+                    <button id="chrome-expand" title="Toggle wide mode" class="w-6 h-6 rounded-md border-2 border-ink flex items-center justify-center text-[10px] hover:bg-ink hover:text-white transition">&#9723;</button>
+                    <button title="Nice try — you can't close a portfolio you're proud of" class="w-6 h-6 rounded-md border-2 border-ink flex items-center justify-center text-[10px] hover:bg-brand-orange hover:text-white transition">&times;</button>
+                </div>
+            </div>
+
+            <!-- HERO -->
+            <section id="home" class="px-6 sm:px-10 pt-14 pb-10 text-center border-b-2 border-ink/10">
+                <div class="reveal-up relative w-28 h-28 mx-auto mb-6">
+                    <div class="absolute inset-0 rotate-6 rounded-2xl bg-brand-orange border-2 border-ink"></div>
+                    <div class="relative w-full h-full rounded-2xl overflow-hidden border-2 border-ink bg-white flex items-center justify-center">
+                        <img src="photo.png" alt="Rafay Mustafa" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                    </div>
+                </div>
+
+                <h1 class="reveal-up text-4xl sm:text-5xl font-bold font-display leading-tight mb-4">
+                    Make AI education <span class="marker">self&#8209;driving</span>
+                </h1>
+                <p class="reveal-up max-w-xl mx-auto text-ink/70 mb-8">
+                    Hi, I'm Rafay Mustafa &mdash; an AI EdTech researcher and community builder. I research, build, and teach 17,000+ students how to do the same.
+                </p>
+
+                <!-- Tri-tab panel, PostHog-style -->
+                <div class="reveal-up max-w-lg mx-auto">
+                    <div class="flex flex-wrap justify-center gap-2 mb-4">
+                        <button class="tab-btn px-4 py-2 rounded-full border-2 border-ink text-sm font-bold bg-ink text-white" data-tab="ask">Ask me anything</button>
+                        <button class="tab-btn px-4 py-2 rounded-full border-2 border-ink text-sm font-bold bg-white" data-tab="research">My research</button>
+                        <button class="tab-btn px-4 py-2 rounded-full border-2 border-ink text-sm font-bold bg-white" data-tab="build">What I build</button>
+                    </div>
+                    <div class="border-2 border-ink rounded-2xl bg-cream p-5 text-left shadow-hard-sm min-h-[110px]">
+                        <div data-panel="ask">
+                            <p class="text-sm font-semibold text-ink/50 mb-1">You ask:</p>
+                            <p class="text-sm mb-3">"What do you actually work on?"</p>
+                            <p class="text-sm font-semibold text-ink/50 mb-1">Rafay:</p>
+                            <p class="text-sm">AI-powered EdTech &mdash; adaptive tutors, accessibility tools, and research on how people actually learn with AI.</p>
+                        </div>
+                        <div data-panel="research" class="hidden">
+                            <p class="text-sm">Published research across ICET, ICOSST, ICECT, and MDPI Applied Sciences &mdash; spanning emotion detection, assistive robotics, and AI for ADHD learners. See the <a href="#publications" class="text-brand-orange font-semibold underline">Publications</a> section for the full list.</p>
+                        </div>
+                        <div data-panel="build" class="hidden">
+                            <p class="text-sm">HyperLearn, Robotrolley, a wearable safety device, and more &mdash; four shipped projects, two of them award-winning. See <a href="#projects" class="text-brand-orange font-semibold underline">Projects</a> below.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal-up flex flex-wrap gap-3 justify-center mt-8">
+                    <a href="#projects" class="lift px-6 py-3 text-sm font-bold text-white bg-ink rounded-full border-2 border-ink shadow-hard-sm hover:shadow-hard transition">View my work</a>
+                    <a href="#contact" class="lift px-6 py-3 text-sm font-bold text-ink bg-white rounded-full border-2 border-ink shadow-hard-sm hover:shadow-hard transition">Get in touch</a>
+                </div>
+
+                <div class="reveal-up mt-8 flex justify-center gap-3">
+                    <a href="https://github.com/rafaym1/" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard transition text-ink">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/rafay-mustafa" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard transition text-ink">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                    <a href="mailto:rafaym30@gmail.com" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard transition text-ink">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ABOUT -->
+            <section id="about" class="px-6 sm:px-10 py-14 border-b-2 border-ink/10">
+                <p class="reveal-up text-xs font-bold uppercase tracking-wide text-brand-orange mb-2">01 / About</p>
+                <h2 class="reveal-up text-3xl font-bold font-display mb-8">The short version</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <p class="reveal-up text-ink/75 leading-relaxed">
+                        Rafay is an active AI EdTech researcher and a community builder. She has developed award-winning educational technologies, and has conducted research across Germany, Canada, and Pakistan, with publications in renowned organization. She frequently speaks about AI literacy, accessible learning, and the future of education. Through mentorship and community leadership, she has supported 17,000+ students globally in pursuing research and tech careers.
+                    </p>
+                    <div class="reveal-up bg-cream border-2 border-ink rounded-2xl p-5 shadow-hard-sm">
+                        <h3 class="font-display font-bold mb-3 text-sm">Technical Arsenal</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">Python</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">TensorFlow</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">PyTorch</span>
+                            <span class="px-3 py-1 bg-brand-yellow border-2 border-ink rounded-full text-xs font-semibold">LLMs</span>
+                            <span class="px-3 py-1 bg-brand-yellow border-2 border-ink rounded-full text-xs font-semibold">Generative AI</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">OpenCV</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">NLP</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">Reinforcement Learning</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">Project Management</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">Qualitative Research</span>
+                            <span class="px-3 py-1 bg-white border-2 border-ink rounded-full text-xs font-semibold">Quantitative Research</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EXPERIENCE -->
+            <section id="experience" class="px-6 sm:px-10 py-14 border-b-2 border-ink/10">
+                <p class="reveal-up text-xs font-bold uppercase tracking-wide text-brand-orange mb-2">02 / Experience</p>
+                <h2 class="reveal-up text-3xl font-bold font-display mb-8">Where I've worked</h2>
+                <div class="space-y-5">
+                    <div class="reveal-up border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-2">
+                            <h3 class="font-display font-bold text-lg">Associate SWE (AI Team)</h3>
+                            <span class="text-xs font-bold bg-brand-yellow border-2 border-ink px-3 py-1 rounded-full self-start">June 2025 – Present</span>
+                        </div>
+                        <p class="text-brand-orange font-semibold mb-2 text-sm">Devsinc &bull; Lahore, Pakistan</p>
+                        <p class="text-ink/70 text-sm">Supporting development and productionization of AI models for enterprise clients. Contributing to Amazon's TauBench benchmarking project focusing on LLM performance profiling.</p>
+                    </div>
+                    <div class="reveal-up border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-2">
+                            <h3 class="font-display font-bold text-lg">AI Research Intern</h3>
+                            <span class="text-xs font-bold bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">Sept 2024 – Nov 2024</span>
+                        </div>
+                        <p class="text-brand-orange font-semibold mb-2 text-sm">University of Europe for Applied Sciences &bull; Remote (Germany)</p>
+                        <p class="text-ink/70 text-sm">Developed an AI-powered educational app for adults with ADHD integrating LLaMA-based chatbots. Published research in MDPI at the 5th International Electronic Conference on Applied Sciences.</p>
+                    </div>
+                    <div class="reveal-up border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-2">
+                            <h3 class="font-display font-bold text-lg">AI Research Intern</h3>
+                            <span class="text-xs font-bold bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">June 2024 – Aug 2024</span>
+                        </div>
+                        <p class="text-brand-orange font-semibold mb-2 text-sm">University of Northern British Columbia &bull; Prince George, Canada</p>
+                        <p class="text-ink/70 text-sm">Collaborated with CTAAN to explore AI adoption for the aging population. Designed systematic plans for medical database analysis under Dr. Shannon Freeman.</p>
+                    </div>
+                    <div class="reveal-up border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-2">
+                            <h3 class="font-display font-bold text-lg">AI Research Intern</h3>
+                            <span class="text-xs font-bold bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">Sept 2023 – Dec 2023</span>
+                        </div>
+                        <p class="text-brand-orange font-semibold mb-2 text-sm">Interdisciplinary Machine Learning Initiative Lab &bull; Swabi, Pakistan</p>
+                        <p class="text-ink/70 text-sm">Developed 'Robotrolley: Customer Following Trolley' for the visually impaired. Disseminated findings at ICOSST.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROJECTS -->
+            <section id="projects" class="px-6 sm:px-10 py-14 border-b-2 border-ink/10">
+                <p class="reveal-up text-xs font-bold uppercase tracking-wide text-brand-orange mb-2">03 / Projects</p>
+                <h2 class="reveal-up text-3xl font-bold font-display mb-8">Featured projects</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <button onclick="openModal('hyperlearn')" class="reveal-up lift text-left border-2 border-ink rounded-2xl p-6 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <h3 class="font-display font-bold">HyperLearn</h3>
+                            <span class="text-[10px] font-bold bg-brand-green/30 border-2 border-ink rounded-full px-2 py-0.5 whitespace-nowrap">GIKI Winner</span>
+                        </div>
+                        <p class="text-sm text-ink/70 mb-3">AI-powered assistive study app for adult ADHD students with a LLaMA-based tutor.</p>
+                        <span class="text-xs font-bold text-brand-orange">Click for more &rarr;</span>
+                    </button>
+                    <button onclick="openModal('robotrolley')" class="reveal-up lift text-left border-2 border-ink rounded-2xl p-6 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <h3 class="font-display font-bold">Robotrolley</h3>
+                            <span class="text-[10px] font-bold bg-brand-blue/20 border-2 border-ink rounded-full px-2 py-0.5 whitespace-nowrap">ICOSST</span>
+                        </div>
+                        <p class="text-sm text-ink/70 mb-3">Customer-following trolley (CFT) to assist visually impaired shoppers using computer vision.</p>
+                        <span class="text-xs font-bold text-brand-orange">Click for more &rarr;</span>
+                    </button>
+                    <button onclick="openModal('emotions')" class="reveal-up lift text-left border-2 border-ink rounded-2xl p-6 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <h3 class="font-display font-bold">Deciphering Faces</h3>
+                            <span class="text-[10px] font-bold bg-brand-blue/20 border-2 border-ink rounded-full px-2 py-0.5 whitespace-nowrap">ICET</span>
+                        </div>
+                        <p class="text-sm text-ink/70 mb-3">Enhanced emotion detection system using advanced machine learning for facial expressions.</p>
+                        <span class="text-xs font-bold text-brand-orange">Click for more &rarr;</span>
+                    </button>
+                    <button onclick="openModal('safety')" class="reveal-up lift text-left border-2 border-ink rounded-2xl p-6 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <h3 class="font-display font-bold">Wearable Safety Tool</h3>
+                            <span class="text-[10px] font-bold bg-brand-green/30 border-2 border-ink rounded-full px-2 py-0.5 whitespace-nowrap">Uraan Winner</span>
+                        </div>
+                        <p class="text-sm text-ink/70 mb-3">Wearable device for women that functions in areas with no internet connectivity, using IoT.</p>
+                        <span class="text-xs font-bold text-brand-orange">Click for more &rarr;</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- COMMUNITY -->
+            <section id="volunteer" class="px-6 sm:px-10 py-14 border-b-2 border-ink/10">
+                <p class="reveal-up text-xs font-bold uppercase tracking-wide text-brand-orange mb-2">04 / Community</p>
+                <h2 class="reveal-up text-3xl font-bold font-display mb-8">Community &amp; leadership</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="openModal('cohere')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">AYA Cohere for AI</h3>
+                        <p class="text-xs text-ink/60 mb-2">Open Source Contributor</p>
+                        <p class="text-sm text-ink/70">Contributed to the global initiative to advance multilingual AI.</p>
+                    </button>
+                    <button onclick="openModal('modelflow')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">ModelFlow</h3>
+                        <p class="text-xs text-ink/60 mb-2">Open Source Contributor</p>
+                        <p class="text-sm text-ink/70">Collaborated with maintainers of ModelFlow on GitHub.</p>
+                    </button>
+                    <button onclick="openModal('topmate')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">Topmate Research Mentor</h3>
+                        <p class="text-xs text-ink/60 mb-2">Mentor &amp; Content Creator</p>
+                        <p class="text-sm text-ink/70">Mentored undergraduates globally on education and research.</p>
+                    </button>
+                    <button onclick="openModal('shell')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">Shell RISE</h3>
+                        <p class="text-xs text-ink/60 mb-2">Ambassador</p>
+                        <p class="text-sm text-ink/70">Developed and implemented sustainable initiatives.</p>
+                    </button>
+                    <button onclick="openModal('nayapay')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">NayaPay</h3>
+                        <p class="text-xs text-ink/60 mb-2">Campus Ambassador</p>
+                        <p class="text-sm text-ink/70">Executed innovative marketing strategies.</p>
+                    </button>
+                    <button onclick="openModal('paklaunch')" class="reveal-up lift text-left border-2 border-ink rounded-xl p-5 shadow-hard-sm hover:shadow-hard transition focus:outline-none">
+                        <h3 class="font-bold text-sm mb-1">PakLaunch</h3>
+                        <p class="text-xs text-ink/60 mb-2">Campus Representative</p>
+                        <p class="text-sm text-ink/70">Facilitated communication and nurtured brand identity.</p>
+                    </button>
+                </div>
+            </section>
+
+            <!-- PUBLICATIONS -->
+            <section id="publications" class="px-6 sm:px-10 py-14 border-b-2 border-ink/10">
+                <p class="reveal-up text-xs font-bold uppercase tracking-wide text-brand-orange mb-2">05 / Recognition</p>
+                <h2 class="reveal-up text-3xl font-bold font-display mb-8">Honors &amp; publications</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="reveal-up bg-cream border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <h3 class="font-display font-bold mb-4 text-sm">Awards</h3>
+                        <ul class="space-y-3 text-sm">
+                            <li class="pb-3 border-b border-ink/10"><div class="font-bold">Mitacs Globalink Research Award</div><div class="text-ink/50 text-xs mt-0.5">2024-2025 &bull; Mitacs Canada</div></li>
+                            <li class="pb-3 border-b border-ink/10"><div class="font-bold">Innovista Startup League Winner</div><div class="text-ink/50 text-xs mt-0.5">2025 &bull; Innovista</div></li>
+                            <li class="pb-3 border-b border-ink/10"><div class="font-bold">Uraan Hackathon Winner</div><div class="text-ink/50 text-xs mt-0.5">2023 &bull; LUMS</div></li>
+                            <li><div class="font-bold">Microsoft Imagine Cup</div><div class="text-ink/50 text-xs mt-0.5">2023 &bull; National Finalist</div></li>
+                        </ul>
+                    </div>
+                    <div class="reveal-up bg-cream border-2 border-ink rounded-2xl p-6 shadow-hard-sm">
+                        <h3 class="font-display font-bold mb-4 text-sm">Publications</h3>
+                        <ul class="space-y-3 text-sm">
+                            <li class="pb-3 border-b border-ink/10"><a href="https://ieeexplore.ieee.org/abstract/document/10374955" target="_blank" class="font-bold hover:text-brand-orange transition">Deciphering Faces: Enhancing Emotion Detection</a><div class="text-brand-orange text-xs font-bold uppercase mt-0.5">ICET</div></li>
+                            <li class="pb-3 border-b border-ink/10"><a href="https://ieeexplore.ieee.org/abstract/document/10375063" target="_blank" class="font-bold hover:text-brand-orange transition">AdaptiveCloset: RL in Clothing</a><div class="text-brand-orange text-xs font-bold uppercase mt-0.5">ICET</div></li>
+                            <li class="pb-3 border-b border-ink/10"><a href="https://sciforum.net/paper/view/20771" target="_blank" class="font-bold hover:text-brand-orange transition">Customized Learning for ADHD</a><div class="text-brand-orange text-xs font-bold uppercase mt-0.5">MDPI Applied Sciences</div></li>
+                            <li class="pb-3 border-b border-ink/10"><a href="https://ieeexplore.ieee.org/abstract/document/10414202" target="_blank" class="font-bold hover:text-brand-orange transition">Robotrolley: Customer Following Trolley</a><div class="text-brand-orange text-xs font-bold uppercase mt-0.5">ICOSST</div></li>
+                            <li><a href="https://ieeexplore.ieee.org/abstract/document/10581187" target="_blank" class="font-bold hover:text-brand-orange transition">Smart Shoe for Blind &amp; Visually Impaired People</a><div class="text-brand-orange text-xs font-bold uppercase mt-0.5">ICECT</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTACT -->
+            <footer id="contact" class="px-6 sm:px-10 py-14 bg-ink text-cream rounded-b-[26px]">
+                <div class="reveal-up flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 text-center sm:text-left">
+                    <div>
+                        <h2 class="font-display text-2xl font-bold mb-2">Let's build something <span class="marker text-ink">together</span></h2>
+                        <p class="text-cream/60 text-sm">Open to collaborations in AI, EdTech, and Software Development.</p>
+                    </div>
+                    <a href="mailto:rafaym30@gmail.com" class="lift shrink-0 px-6 py-3 text-sm font-bold text-ink bg-brand-yellow rounded-full border-2 border-cream transition">Say Hello</a>
+                </div>
+                <div class="reveal-up flex justify-center sm:justify-start gap-3 mb-8">
+                    <a href="https://github.com/rafaym1/" class="w-10 h-10 flex items-center justify-center border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition text-cream/70">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/rafay-mustafa" class="w-10 h-10 flex items-center justify-center border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition text-cream/70">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                    <a href="mailto:rafaym30@gmail.com" class="w-10 h-10 flex items-center justify-center border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition text-cream/70">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </a>
+                    <a href="https://instagram.com/confuged_baji" class="w-10 h-10 flex items-center justify-center border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition text-cream/70">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-14c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6zm0 10c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg>
+                    </a>
+                </div>
+                <div class="reveal-up border-t border-cream/10 pt-6 text-center sm:text-left text-cream/40 text-xs">
+                    &copy; 2025 Rafay Mustafa. All rights reserved.
+                </div>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- ===================== Modal (shared) ===================== -->
+    <div id="info-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div id="modal-backdrop" class="fixed inset-0 bg-ink bg-opacity-70 transition-opacity opacity-0" aria-hidden="true" onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div id="modal-panel" class="relative inline-block align-bottom bg-white rounded-2xl border-2 border-ink text-left overflow-hidden shadow-hard-lg transform transition sm:my-8 sm:align-middle sm:max-w-lg w-full modal-enter">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="font-display text-2xl leading-6 font-bold text-ink mb-2" id="modal-title">Project Title</h3>
+                            <div class="mt-4">
+                                <p class="text-sm text-ink/70 leading-relaxed" id="modal-description">Description goes here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-cream px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-ink">
+                    <button type="button" class="w-full inline-flex justify-center rounded-full border-2 border-ink shadow-hard-sm px-5 py-2.5 bg-brand-yellow text-base font-bold text-ink hover:shadow-hard focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+        .modal-exit { opacity: 1; transform: scale(1); }
+        .modal-exit-active { opacity: 0; transform: scale(0.95); transition: opacity 0.2s ease-in, transform 0.2s ease-in; }
+    </style>
+
+    <script>
+        const modalData = {
+            'hyperlearn': { title: 'HyperLearn (EdTech)', description: 'Winner at GIKI Industrial Open House 2025 (1st out of 51 projects). Developed an AI-powered educational app aimed at adult students with ADHD. The system utilizes LLaMA-based chatbots to provide personalized tutoring and adaptive learning paths. Built using React Native for cross-platform compatibility to improve focus and engagement.' },
+            'robotrolley': { title: 'Robotrolley', description: 'Published at ICOSST. Designed a hardware and software solution to assist visually impaired individuals in supermarkets. The "Robotrolley" uses computer vision algorithms to track and follow the specific customer, ensuring a hands-free and safe shopping experience.' },
+            'emotions': { title: 'Deciphering Faces', description: 'Published at the 18th International Conference on Emerging Technologies (ICET). Research project focused on enhancing emotion detection accuracy using advanced deep learning techniques. The study analyzed facial micro-expressions to decipher complex emotional states beyond simple classification.' },
+            'safety': { title: 'Wearable Safety Tool', description: 'Winner of the Uraan Hackathon (Gender, Mobility and Tech) by LUMS. Designed a wearable safety device for women that operates independently of internet connectivity. It utilizes embedded systems to send distress signals in remote areas, focusing on accessibility and reliability.' },
+            'cohere': { title: 'AYA Cohere for AI', description: 'Contributed to the Aya project, a massive open science initiative to build a state-of-the-art multilingual AI model. Specifically focused on curating, cleaning, and validating Urdu language datasets to improve model performance for low-resource languages, bridging the gap between cultures.' },
+            'modelflow': { title: 'ModelFlow Contributor', description: 'Active contributor to the ModelFlow open-source repository. Created comprehensive NLP tutorials and optimized existing Jupyter notebooks to help the community learn deep learning concepts more effectively. Collaborated directly with maintainers to resolve issues.' },
+            'topmate': { title: 'Topmate Research Mentor', description: 'Leveraged social media platforms (YouTube, LinkedIn) to mentor over 17,000 students globally. Provided one-on-one guidance on research internships, scholarship applications, and career paths in AI, helping students secure positions at leading Canadian institutions.' },
+            'shell': { title: 'Shell RISE Ambassador', description: 'Served as the University Focal Person for Shell. Led initiatives to promote energy sustainability on campus and organized events to raise awareness about reducing ecological footprints. Established a strong partnership between Shell and the university.' },
+            'nayapay': { title: 'NayaPay Ambassador', description: 'Campus Ambassador for NayaPay, a leading fintech platform in Pakistan. Executed on-ground marketing strategies to drive app adoption and gathered user feedback to improve the student banking experience.' },
+            'paklaunch': { title: 'PakLaunch Representative', description: 'Facilitated communication between the PakLaunch startup ecosystem and the university student body. Helped organize webinars and networking sessions to connect students with industry leaders, nurturing a strong brand identity.' }
+        };
+
+        const modal = document.getElementById('info-modal');
+        const modalPanel = document.getElementById('modal-panel');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-description');
+
+        function openModal(id) {
+            const data = modalData[id];
+            if (!data) return;
+            modalTitle.innerText = data.title;
+            modalDesc.innerText = data.description;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalPanel.classList.remove('modal-enter');
+                modalPanel.classList.add('modal-enter-active');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+            if (window.__lenis) window.__lenis.stop();
+        }
+
+        function closeModal() {
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.remove('modal-enter-active');
+            modalPanel.classList.add('modal-exit-active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modalPanel.classList.remove('modal-exit-active');
+                modalPanel.classList.add('modal-enter');
+                document.body.style.overflow = '';
+                if (window.__lenis) window.__lenis.start();
+            }, 200);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+
+        // Hero tri-tab switcher
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-ink', 'text-white'); b.classList.add('bg-white'); });
+                btn.classList.add('bg-ink', 'text-white');
+                btn.classList.remove('bg-white');
+                const target = btn.getAttribute('data-tab');
+                document.querySelectorAll('[data-panel]').forEach(p => p.classList.add('hidden'));
+                document.querySelector('[data-panel="' + target + '"]').classList.remove('hidden');
+            });
+        });
+
+        // Window chrome "expand" toggles wide mode (shrinks the side margin, widens the card)
+        document.getElementById('chrome-expand').addEventListener('click', () => {
+            document.documentElement.classList.toggle('wide-mode');
+            const card = document.querySelector('.window-card');
+            card.classList.toggle('max-w-4xl');
+            card.classList.toggle('max-w-6xl');
+        });
+
+        // Smooth scrolling (Lenis) + scroll reveals (GSAP ScrollTrigger)
+        (function () {
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let lenis = null;
+            if (!prefersReduced && window.Lenis) {
+                lenis = new Lenis({ duration: 1.1, smoothWheel: true, wheelMultiplier: 1, touchMultiplier: 1.2 });
+                window.__lenis = lenis;
+                lenis.on('scroll', ScrollTrigger.update);
+                gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+                gsap.ticker.lagSmoothing(0);
+            }
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (!target) return;
+                    e.preventDefault();
+                    if (lenis) lenis.scrollTo(target, { offset: -80 });
+                    else target.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+
+            if (prefersReduced || !window.gsap) {
+                document.querySelectorAll('.reveal-up').forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
+                return;
+            }
+
+            gsap.registerPlugin(ScrollTrigger);
+            document.querySelectorAll('section, footer').forEach(section => {
+                const items = section.querySelectorAll('.reveal-up');
+                if (items.length) {
+                    gsap.to(items, {
+                        opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.07,
+                        scrollTrigger: { trigger: section, start: 'top 85%', once: true }
+                    });
+                }
+            });
+            ScrollTrigger.refresh();
+        })();
+
+        // Custom cursor (large pointer devices only)
+        (function () {
+            if (window.matchMedia('(hover: none), (max-width: 1024px)').matches) return;
+            const dot = document.getElementById('cursor-dot');
+            if (!dot || !window.gsap) return;
+            const setX = gsap.quickTo(dot, 'x', { duration: 0.35, ease: 'power3' });
+            const setY = gsap.quickTo(dot, 'y', { duration: 0.35, ease: 'power3' });
+            window.addEventListener('mousemove', (e) => { setX(e.clientX); setY(e.clientY); });
+            document.querySelectorAll('a, button').forEach(el => {
+                el.addEventListener('mouseenter', () => dot.classList.add('grow'));
+                el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
+            });
+        })();
+    </script>
+</body>
+</html>

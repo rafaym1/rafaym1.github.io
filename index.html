@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,79 +11,135 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#2563eb',
-                        secondary: '#475569',
-                        dark: '#0f172a',
+                        cream: '#EFEEE6',
+                        paper: '#FFFDF7',
+                        ink: '#15161A',
+                        brand: {
+                            orange: '#F54E00',
+                            yellow: '#F7C948',
+                            blue: '#2E5EFF',
+                            green: '#3FA772',
+                            pink: '#FF6B9D',
+                        }
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        hard: '4px 4px 0 0 #15161A',
+                        'hard-lg': '7px 7px 0 0 #15161A',
+                        'hard-sm': '2px 2px 0 0 #15161A',
+                        'hard-orange': '4px 4px 0 0 #F54E00',
                     }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: auto; }
+        body { font-family: 'Inter', sans-serif; background-color: #EFEEE6; }
+        h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Dot grid background */
+        .bg-dots {
+            background-image: radial-gradient(#15161A 1px, transparent 1.5px);
+            background-size: 22px 22px;
+            background-position: -8px -8px;
+        }
+
+        /* Highlighter marker behind text, PostHog-style */
+        .marker {
+            background: linear-gradient(104deg, transparent 0%, transparent 4%, #F7C948 4%, #F7C948 92%, transparent 92%, transparent 100%);
+            padding: 0 2px;
+        }
+
+        /* Custom cursor dot. #cursor-dot itself only ever gets translated (by GSAP);
+           the grow effect is a transform:scale on the inner ring so nothing here
+           ever animates width/height (layout properties). */
+        #cursor-dot {
+            position: fixed;
+            top: 0; left: 0;
+            width: 0; height: 0;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        #cursor-dot .ring {
+            position: absolute;
+            top: 0; left: 0;
+            width: 40px; height: 40px;
+            margin: -20px 0 0 -20px;
+            border: 2px solid #15161A;
+            border-radius: 50%;
+            transform: scale(0.45);
+            transition: transform .2s ease, background-color .2s ease;
+            mix-blend-mode: normal;
+        }
+        #cursor-dot.grow .ring {
+            transform: scale(1);
+            background-color: rgba(247, 201, 72, 0.5);
+        }
+        @media (max-width: 768px), (hover: none) {
+            #cursor-dot { display: none; }
+        }
+
+        .reveal-up { opacity: 0; transform: translateY(36px); }
+        .reveal-scale { opacity: 0; transform: scale(0.92); }
+
         .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(239, 238, 230, 0.85);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
-        .section-fade {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+
+        .float-shape {
+            position: absolute;
+            pointer-events: none;
         }
-        .section-fade.visible {
-            opacity: 1;
-            transform: translateY(0);
+
+        /* Neubrutalist hover lift */
+        .lift {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        /* Modal Animation */
-        .modal-enter {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-        .modal-enter-active {
-            opacity: 1;
-            transform: scale(1);
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-        }
-        .modal-exit {
-            opacity: 1;
-            transform: scale(1);
-        }
-        .modal-exit-active {
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.2s ease-in, transform 0.2s ease-in;
+        .lift:hover {
+            transform: translate(-3px, -3px);
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+<body class="bg-cream text-ink antialiased selection:bg-brand-yellow selection:text-ink">
+
+    <div id="cursor-dot"><div class="ring"></div></div>
 
     <!-- Navigation -->
-    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" id="navbar">
+    <nav class="fixed w-full z-50 glass-nav border-b-2 border-ink/0 transition duration-300" id="navbar">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="#home" class="text-xl font-bold text-slate-900 tracking-tight">Rafay<span class="text-blue-600">.AI</span></a>
+                    <a href="#home" class="font-display text-xl font-bold text-ink tracking-tight flex items-center gap-1">
+                        Rafay<span class="w-2.5 h-2.5 rounded-full bg-brand-orange inline-block"></span><span class="text-brand-orange">AI</span>
+                    </a>
                 </div>
-                
+
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-6">
-                    <a href="#about" class="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">About</a>
-                    <a href="#experience" class="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">Experience</a>
-                    <a href="#projects" class="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">Projects</a>
-                    <a href="#volunteer" class="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">Community</a>
-                    <a href="#publications" class="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">Publications</a>
-                    <a href="#contact" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shadow-sm">Contact Me</a>
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="#about" class="px-3 py-2 text-ink/80 hover:text-ink hover:bg-ink/5 rounded-full font-medium transition-colors text-sm">About</a>
+                    <a href="#experience" class="px-3 py-2 text-ink/80 hover:text-ink hover:bg-ink/5 rounded-full font-medium transition-colors text-sm">Experience</a>
+                    <a href="#projects" class="px-3 py-2 text-ink/80 hover:text-ink hover:bg-ink/5 rounded-full font-medium transition-colors text-sm">Projects</a>
+                    <a href="#volunteer" class="px-3 py-2 text-ink/80 hover:text-ink hover:bg-ink/5 rounded-full font-medium transition-colors text-sm">Community</a>
+                    <a href="#publications" class="px-3 py-2 text-ink/80 hover:text-ink hover:bg-ink/5 rounded-full font-medium transition-colors text-sm">Publications</a>
+                    <a href="#contact" class="ml-2 px-5 py-2 text-sm font-bold text-ink bg-brand-yellow border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard hover:-translate-x-0.5 hover:-translate-y-0.5 transition">Contact Me</a>
                 </div>
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button id="mobile-menu-btn" class="text-ink border-2 border-ink rounded-full p-2 bg-paper shadow-hard-sm focus:outline-none">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
@@ -92,91 +148,106 @@
         </div>
 
         <!-- Mobile Menu Panel -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full shadow-lg">
+        <div id="mobile-menu" class="hidden md:hidden bg-paper border-t-2 border-ink absolute w-full shadow-hard">
             <div class="px-4 pt-2 pb-6 space-y-2">
-                <a href="#about" class="block px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-md" onclick="toggleMobileMenu()">About</a>
-                <a href="#experience" class="block px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-md" onclick="toggleMobileMenu()">Experience</a>
-                <a href="#projects" class="block px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-md" onclick="toggleMobileMenu()">Projects</a>
-                <a href="#volunteer" class="block px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-md" onclick="toggleMobileMenu()">Community</a>
-                <a href="#publications" class="block px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-md" onclick="toggleMobileMenu()">Publications</a>
-                <a href="#contact" class="block px-3 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 rounded-md" onclick="toggleMobileMenu()">Contact</a>
+                <a href="#about" class="block px-3 py-3 text-base font-medium text-ink hover:bg-cream rounded-md" onclick="toggleMobileMenu()">About</a>
+                <a href="#experience" class="block px-3 py-3 text-base font-medium text-ink hover:bg-cream rounded-md" onclick="toggleMobileMenu()">Experience</a>
+                <a href="#projects" class="block px-3 py-3 text-base font-medium text-ink hover:bg-cream rounded-md" onclick="toggleMobileMenu()">Projects</a>
+                <a href="#volunteer" class="block px-3 py-3 text-base font-medium text-ink hover:bg-cream rounded-md" onclick="toggleMobileMenu()">Community</a>
+                <a href="#publications" class="block px-3 py-3 text-base font-medium text-ink hover:bg-cream rounded-md" onclick="toggleMobileMenu()">Publications</a>
+                <a href="#contact" class="block px-3 py-3 text-base font-bold text-ink bg-brand-yellow rounded-md" onclick="toggleMobileMenu()">Contact</a>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
-        <!-- Background Decorative Elements -->
-        <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-            <div class="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] bg-blue-100 rounded-full blur-3xl opacity-60 animate-pulse"></div>
-            <div class="absolute top-[40%] -left-[10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-3xl opacity-60"></div>
+    <section id="home" class="min-h-screen flex items-center justify-center pt-24 pb-16 relative overflow-hidden bg-dots">
+        <!-- Decorative floating shapes -->
+        <div class="absolute inset-0 -z-10">
+            <div class="float-shape top-[12%] left-[6%] w-16 h-16 border-[3px] border-ink rounded-full bg-brand-pink/30" data-speed="0.3"></div>
+            <div class="float-shape top-[70%] left-[10%] w-10 h-10 border-[3px] border-ink rotate-12 bg-brand-blue/20" data-speed="0.5"></div>
+            <div class="float-shape top-[20%] right-[8%] w-20 h-20 border-[3px] border-ink rotate-45 bg-brand-yellow/40" data-speed="0.4"></div>
+            <div class="float-shape top-[65%] right-[14%] w-12 h-12 border-[3px] border-ink rounded-full bg-brand-green/20" data-speed="0.2"></div>
+            <svg class="float-shape top-[35%] left-[18%] w-8 h-8 text-ink/60" data-speed="0.6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            <svg class="float-shape top-[45%] right-[22%] w-6 h-6 text-brand-orange" data-speed="0.35" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
         </div>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center section-fade">
-            <!-- Profile Picture Placeholder -->
-            <div class="relative w-40 h-40 mx-auto mb-8 rounded-full overflow-hidden border-4 border-white shadow-xl bg-slate-200 flex items-center justify-center group">
-                <!-- Replace 'src' with your actual image URL. Using a placeholder SVG for now. -->
-                <img src="photo.png" alt="Rafay Mustafa" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                <div class="flex flex-col items-center justify-center text-slate-400">
-                  
-                                   </div>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center relative">
+            <div class="reveal-up inline-flex items-center gap-2 px-4 py-1.5 mb-8 bg-paper border-2 border-ink rounded-full shadow-hard-sm font-medium text-sm">
+                <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+                AI Researcher &amp; Community Builder
             </div>
-            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-6">
-                Hi, I'm <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Rafay Mustafa</span>
+
+            <div class="relative w-36 h-36 mx-auto mb-8 reveal-scale">
+                <div class="absolute inset-0 rotate-6 rounded-3xl bg-brand-orange border-[3px] border-ink"></div>
+                <div class="relative w-full h-full rounded-3xl overflow-hidden border-[3px] border-ink bg-paper shadow-hard-lg flex items-center justify-center">
+                    <img src="photo.png" alt="Rafay Mustafa" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                </div>
+                <div class="absolute -bottom-3 -right-4 px-3 py-1 bg-brand-yellow border-2 border-ink rounded-full text-xs font-bold shadow-hard-sm rotate-6">AI &amp; EdTech</div>
+            </div>
+
+            <h1 class="reveal-up text-5xl md:text-7xl font-bold text-ink tracking-tight mb-6 font-display leading-[1.1]">
+                Hi, I'm <span class="marker">Rafay Mustafa</span>
             </h1>
-           
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="#projects" class="px-8 py-3.5 text-base font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5">
+
+            <p class="reveal-up max-w-2xl mx-auto text-lg text-ink/70 mb-10">
+                I research and build AI-powered EdTech &mdash; then teach 17,000+ students how to do the same.
+            </p>
+
+            <div class="reveal-up flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#projects" class="lift px-8 py-3.5 text-base font-bold text-paper bg-ink rounded-full border-2 border-ink shadow-hard hover:shadow-hard-lg transition">
                     View My Work
                 </a>
-                <a href="#contact" class="px-8 py-3.5 text-base font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-all shadow-sm hover:shadow-md">
+                <a href="#contact" class="lift px-8 py-3.5 text-base font-bold text-ink bg-paper border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard transition">
                     Get in Touch
                 </a>
             </div>
-            
-            <div class="mt-12 flex justify-center space-x-6 text-slate-400">
-                <a href="https://github.com/rafaym1/" target="_blank" class="hover:text-slate-900 transition-colors transform hover:scale-110">
-                    <svg class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+
+            <div class="reveal-up mt-12 flex justify-center space-x-4">
+                <a href="https://github.com/rafaym1/" target="_blank" class="w-11 h-11 flex items-center justify-center bg-paper border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard hover:-translate-x-0.5 hover:-translate-y-0.5 transition text-ink">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 </a>
-                <a href="https://www.linkedin.com/in/rafay-mustafa" target="_blank" class="hover:text-blue-600 transition-colors transform hover:scale-110">
-                    <svg class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                <a href="https://www.linkedin.com/in/rafay-mustafa" target="_blank" class="w-11 h-11 flex items-center justify-center bg-paper border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard hover:-translate-x-0.5 hover:-translate-y-0.5 transition text-ink">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
                 </a>
-                <a href="mailto:rafaym30@gmail.com" class="hover:text-red-500 transition-colors transform hover:scale-110">
-                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <a href="mailto:rafaym30@gmail.com" class="w-11 h-11 flex items-center justify-center bg-paper border-2 border-ink rounded-full shadow-hard-sm hover:shadow-hard hover:-translate-x-0.5 hover:-translate-y-0.5 transition text-ink">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 </a>
             </div>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 section-fade">
-            <h2 class="text-3xl font-bold text-slate-900 mb-8 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                About Me
+    <section id="about" class="py-24 bg-paper border-t-2 border-ink relative">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 mb-4 bg-cream border-2 border-ink rounded-full text-xs font-bold uppercase tracking-wide">
+                <span class="text-brand-orange">01</span> / About Me
+            </div>
+            <h2 class="reveal-up text-4xl font-bold text-ink mb-12 font-display">
+                The short version
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div class="prose prose-lg text-slate-600">
-                   
-                       Rafay is an active AI EdTech researcher and a community builder. She has developed award-winning educational technologies, and has conducted research across Germany, Canada, and Pakistan, with publications in renowned organization. She frequently speaks about AI literacy, accessible learning, and the future of education. Through mentorship and community leadership, she has supported 17,000+ students globally in pursuing research and tech careers.
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                <div class="reveal-up prose prose-lg text-ink/80 leading-relaxed">
+                    <p>
+                        Rafay is an active AI EdTech researcher and a community builder. She has developed award-winning educational technologies, and has conducted research across Germany, Canada, and Pakistan, with publications in renowned organization. She frequently speaks about AI literacy, accessible learning, and the future of education. Through mentorship and community leadership, she has supported 17,000+ students globally in pursuing research and tech careers.
                     </p>
                 </div>
-                
+
                 <!-- Skills Badge Grid -->
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Technical Arsenal</h3>
+                <div class="reveal-up bg-cream p-6 rounded-2xl border-2 border-ink shadow-hard">
+                    <h3 class="font-display text-lg font-bold text-ink mb-4">Technical Arsenal</h3>
                     <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Python</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">TensorFlow</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">PyTorch</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">LLMs</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Generative AI</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">OpenCV</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">NLP</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Reinforcement Learning</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Project Management</span>
-                        <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Qualitative Research</span>
-<span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-sm font-medium">Quantitative Research</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">Python</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">TensorFlow</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">PyTorch</span>
+                        <span class="px-3 py-1 bg-brand-yellow border-2 border-ink text-ink rounded-full text-sm font-semibold">LLMs</span>
+                        <span class="px-3 py-1 bg-brand-yellow border-2 border-ink text-ink rounded-full text-sm font-semibold">Generative AI</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">OpenCV</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">NLP</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">Reinforcement Learning</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">Project Management</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">Qualitative Research</span>
+                        <span class="px-3 py-1 bg-paper border-2 border-ink text-ink rounded-full text-sm font-semibold">Quantitative Research</span>
                     </div>
                 </div>
             </div>
@@ -184,142 +255,134 @@
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="py-20 bg-slate-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 section-fade">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Experience
-            </h2>
-            
-            <div class="relative border-l-2 border-slate-200 ml-3 md:ml-6 space-y-12">
+    <section id="experience" class="py-24 bg-cream border-t-2 border-ink bg-dots">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 mb-4 bg-paper border-2 border-ink rounded-full text-xs font-bold uppercase tracking-wide">
+                <span class="text-brand-orange">02</span> / Experience
+            </div>
+            <h2 class="reveal-up text-4xl font-bold text-ink mb-12 font-display">Where I've worked</h2>
+
+            <div class="space-y-6">
                 <!-- Job 1 -->
-                <div class="relative pl-8 md:pl-12">
-                    <div class="absolute -left-[9px] top-0 h-5 w-5 rounded-full border-4 border-white bg-blue-600"></div>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2">
-                        <h3 class="text-xl font-bold text-slate-900">Associate SWE (AI Team)</h3>
-                        <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">June 2025 – Present</span>
+                <div class="reveal-up bg-paper border-2 border-ink rounded-2xl p-6 md:p-8 shadow-hard">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2 gap-2">
+                        <h3 class="font-display text-xl font-bold text-ink">Associate SWE (AI Team)</h3>
+                        <span class="text-xs font-bold text-ink bg-brand-yellow border-2 border-ink px-3 py-1 rounded-full self-start">June 2025 – Present</span>
                     </div>
-                    <p class="text-blue-600 font-medium mb-2">Devsinc &bull; Lahore, Pakistan</p>
-                    <p class="text-slate-600 mb-2">Supporting development and productionization of AI models for enterprise clients. Contributing to Amazon's TauBench benchmarking project focusing on LLM performance profiling.</p>
+                    <p class="text-brand-orange font-semibold mb-2">Devsinc &bull; Lahore, Pakistan</p>
+                    <p class="text-ink/70">Supporting development and productionization of AI models for enterprise clients. Contributing to Amazon's TauBench benchmarking project focusing on LLM performance profiling.</p>
                 </div>
 
                 <!-- Job 2 -->
-                <div class="relative pl-8 md:pl-12">
-                    <div class="absolute -left-[9px] top-0 h-5 w-5 rounded-full border-4 border-white bg-slate-400"></div>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2">
-                        <h3 class="text-xl font-bold text-slate-900">AI Research Intern</h3>
-                        <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Sept 2024 – Nov 2024</span>
+                <div class="reveal-up bg-paper border-2 border-ink rounded-2xl p-6 md:p-8 shadow-hard">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2 gap-2">
+                        <h3 class="font-display text-xl font-bold text-ink">AI Research Intern</h3>
+                        <span class="text-xs font-bold text-ink bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">Sept 2024 – Nov 2024</span>
                     </div>
-                    <p class="text-blue-600 font-medium mb-2">University of Europe for Applied Sciences &bull; Remote (Germany)</p>
-                    <p class="text-slate-600">Developed an AI-powered educational app for adults with ADHD integrating LLaMA-based chatbots. Published research in MDPI at the 5th International Electronic Conference on Applied Sciences.</p>
+                    <p class="text-brand-orange font-semibold mb-2">University of Europe for Applied Sciences &bull; Remote (Germany)</p>
+                    <p class="text-ink/70">Developed an AI-powered educational app for adults with ADHD integrating LLaMA-based chatbots. Published research in MDPI at the 5th International Electronic Conference on Applied Sciences.</p>
                 </div>
 
                 <!-- Job 3 -->
-                <div class="relative pl-8 md:pl-12">
-                    <div class="absolute -left-[9px] top-0 h-5 w-5 rounded-full border-4 border-white bg-slate-400"></div>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2">
-                        <h3 class="text-xl font-bold text-slate-900">AI Research Intern</h3>
-                        <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">June 2024 – Aug 2024</span>
+                <div class="reveal-up bg-paper border-2 border-ink rounded-2xl p-6 md:p-8 shadow-hard">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2 gap-2">
+                        <h3 class="font-display text-xl font-bold text-ink">AI Research Intern</h3>
+                        <span class="text-xs font-bold text-ink bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">June 2024 – Aug 2024</span>
                     </div>
-                    <p class="text-blue-600 font-medium mb-2">University of Northern British Columbia &bull; Prince George, Canada</p>
-                    <p class="text-slate-600">Collaborated with CTAAN to explore AI adoption for the aging population. Designed systematic plans for medical database analysis under Dr. Shannon Freeman.</p>
+                    <p class="text-brand-orange font-semibold mb-2">University of Northern British Columbia &bull; Prince George, Canada</p>
+                    <p class="text-ink/70">Collaborated with CTAAN to explore AI adoption for the aging population. Designed systematic plans for medical database analysis under Dr. Shannon Freeman.</p>
                 </div>
 
                 <!-- Job 4 -->
-                 <div class="relative pl-8 md:pl-12">
-                    <div class="absolute -left-[9px] top-0 h-5 w-5 rounded-full border-4 border-white bg-slate-400"></div>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2">
-                        <h3 class="text-xl font-bold text-slate-900">AI Research Intern</h3>
-                        <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Sept 2023 – Dec 2023</span>
+                <div class="reveal-up bg-paper border-2 border-ink rounded-2xl p-6 md:p-8 shadow-hard">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-2 gap-2">
+                        <h3 class="font-display text-xl font-bold text-ink">AI Research Intern</h3>
+                        <span class="text-xs font-bold text-ink bg-cream border-2 border-ink px-3 py-1 rounded-full self-start">Sept 2023 – Dec 2023</span>
                     </div>
-                    <p class="text-blue-600 font-medium mb-2">Interdisciplinary Machine Learning Initiative Lab &bull; Swabi, Pakistan</p>
-                    <p class="text-slate-600">Developed 'Robotrolley: Customer Following Trolley' for the visually impaired. Disseminated findings at ICOSST.</p>
+                    <p class="text-brand-orange font-semibold mb-2">Interdisciplinary Machine Learning Initiative Lab &bull; Swabi, Pakistan</p>
+                    <p class="text-ink/70">Developed 'Robotrolley: Customer Following Trolley' for the visually impaired. Disseminated findings at ICOSST.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Projects Section -->
-    <section id="projects" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 section-fade">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Featured Projects
-            </h2>
+    <section id="projects" class="py-24 bg-paper border-t-2 border-ink">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 mb-4 bg-cream border-2 border-ink rounded-full text-xs font-bold uppercase tracking-wide">
+                <span class="text-brand-orange">03</span> / Projects
+            </div>
+            <h2 class="reveal-up text-4xl font-bold text-ink mb-12 font-display">Featured Projects</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Project 1 -->
-                <button onclick="openModal('hyperlearn')" class="text-left w-full group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <div class="h-2 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                <button onclick="openModal('hyperlearn')" class="reveal-up lift text-left w-full bg-paper rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition overflow-hidden focus:outline-none">
                     <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">HyperLearn</h3>
-                            <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full">Winner: GIKI Open House</span>
+                        <div class="flex justify-between items-start mb-4 gap-3">
+                            <h3 class="font-display text-xl font-bold text-ink">HyperLearn</h3>
+                            <span class="px-2 py-1 text-xs font-bold text-ink bg-brand-green/30 border-2 border-ink rounded-full whitespace-nowrap">Winner: GIKI Open House</span>
                         </div>
-                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                        <p class="text-ink/70 mb-6 text-sm leading-relaxed">
                             An AI-powered assistive study app for adult ADHD students. Features adaptive learning paths and a LLaMA-based tutor.
                         </p>
                         <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">LLMs</span>
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">React Native</span>
-                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded group-hover:bg-blue-100 transition-colors">Click for more</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">LLMs</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">React Native</span>
+                            <span class="text-xs font-bold text-ink bg-brand-yellow px-2 py-1 rounded-full border border-ink/20">Click for more</span>
                         </div>
                     </div>
                 </button>
 
                 <!-- Project 2 -->
-                <button onclick="openModal('robotrolley')" class="text-left w-full group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                    <div class="h-2 bg-gradient-to-r from-teal-400 to-emerald-500"></div>
+                <button onclick="openModal('robotrolley')" class="reveal-up lift text-left w-full bg-paper rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition overflow-hidden focus:outline-none">
                     <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-slate-900 group-hover:text-teal-600 transition-colors">Robotrolley</h3>
-                            <span class="px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-full">Published @ ICOSST</span>
+                        <div class="flex justify-between items-start mb-4 gap-3">
+                            <h3 class="font-display text-xl font-bold text-ink">Robotrolley</h3>
+                            <span class="px-2 py-1 text-xs font-bold text-ink bg-brand-blue/20 border-2 border-ink rounded-full whitespace-nowrap">Published @ ICOSST</span>
                         </div>
-                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                        <p class="text-ink/70 mb-6 text-sm leading-relaxed">
                             A customer-following trolley (CFT) designed to assist visually impaired individuals using computer vision.
                         </p>
                         <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Computer Vision</span>
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Hardware</span>
-                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded group-hover:bg-blue-100 transition-colors">Click for more</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">Computer Vision</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">Hardware</span>
+                            <span class="text-xs font-bold text-ink bg-brand-yellow px-2 py-1 rounded-full border border-ink/20">Click for more</span>
                         </div>
                     </div>
                 </button>
 
                 <!-- Project 3 -->
-                <button onclick="openModal('emotions')" class="text-left w-full group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                    <div class="h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <button onclick="openModal('emotions')" class="reveal-up lift text-left w-full bg-paper rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition overflow-hidden focus:outline-none">
                     <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">Deciphering Faces</h3>
-                            <span class="px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-full">Published @ ICET</span>
+                        <div class="flex justify-between items-start mb-4 gap-3">
+                            <h3 class="font-display text-xl font-bold text-ink">Deciphering Faces</h3>
+                            <span class="px-2 py-1 text-xs font-bold text-ink bg-brand-blue/20 border-2 border-ink rounded-full whitespace-nowrap">Published @ ICET</span>
                         </div>
-                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                        <p class="text-ink/70 mb-6 text-sm leading-relaxed">
                             Enhanced emotion detection system using advanced machine learning techniques for facial expressions.
                         </p>
                         <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">OpenCV</span>
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Deep Learning</span>
-                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded group-hover:bg-blue-100 transition-colors">Click for more</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">OpenCV</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">Deep Learning</span>
+                            <span class="text-xs font-bold text-ink bg-brand-yellow px-2 py-1 rounded-full border border-ink/20">Click for more</span>
                         </div>
                     </div>
                 </button>
 
                 <!-- Project 4 -->
-                <button onclick="openModal('safety')" class="text-left w-full group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                    <div class="h-2 bg-gradient-to-r from-orange-400 to-red-500"></div>
+                <button onclick="openModal('safety')" class="reveal-up lift text-left w-full bg-paper rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition overflow-hidden focus:outline-none">
                     <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Wearable Safety Tool</h3>
-                            <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 rounded-full">Winner: Uraan Hackathon</span>
+                        <div class="flex justify-between items-start mb-4 gap-3">
+                            <h3 class="font-display text-xl font-bold text-ink">Wearable Safety Tool</h3>
+                            <span class="px-2 py-1 text-xs font-bold text-ink bg-brand-green/30 border-2 border-ink rounded-full whitespace-nowrap">Winner: Uraan Hackathon</span>
                         </div>
-                        <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                        <p class="text-ink/70 mb-6 text-sm leading-relaxed">
                             A wearable device for women designed to function in areas with no internet connectivity using IoT.
                         </p>
                         <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">IoT</span>
-                            <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">Safety</span>
-                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded group-hover:bg-blue-100 transition-colors">Click for more</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">IoT</span>
+                            <span class="text-xs font-semibold text-ink bg-cream border border-ink/20 px-2 py-1 rounded-full">Safety</span>
+                            <span class="text-xs font-bold text-ink bg-brand-yellow px-2 py-1 rounded-full border border-ink/20">Click for more</span>
                         </div>
                     </div>
                 </button>
@@ -328,183 +391,181 @@
     </section>
 
     <!-- Volunteer/Community Work Section -->
-    <section id="volunteer" class="py-20 bg-slate-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 section-fade">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Community & Leadership
-            </h2>
-            
+    <section id="volunteer" class="py-24 bg-cream border-t-2 border-ink bg-dots">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 mb-4 bg-paper border-2 border-ink rounded-full text-xs font-bold uppercase tracking-wide">
+                <span class="text-brand-orange">04</span> / Community
+            </div>
+            <h2 class="reveal-up text-4xl font-bold text-ink mb-12 font-display">Community &amp; Leadership</h2>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Volunteer 1 -->
-                <button onclick="openModal('cohere')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="openModal('cohere')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-blue-100 p-2 rounded-full mr-3 text-blue-600">
+                        <div class="bg-brand-blue/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">AYA Cohere for AI</h3>
-                            <p class="text-xs text-slate-500">Open Source Contributor</p>
+                            <h3 class="font-bold text-ink text-sm">AYA Cohere for AI</h3>
+                            <p class="text-xs text-ink/60">Open Source Contributor</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Contributed to the global initiative to advance multilingual AI.</p>
-                    <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Contributed to the global initiative to advance multilingual AI.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
 
                 <!-- Volunteer 2 -->
-                <button onclick="openModal('modelflow')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="openModal('modelflow')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-indigo-100 p-2 rounded-full mr-3 text-indigo-600">
+                        <div class="bg-brand-pink/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">ModelFlow</h3>
-                            <p class="text-xs text-slate-500">Open Source Contributor</p>
+                            <h3 class="font-bold text-ink text-sm">ModelFlow</h3>
+                            <p class="text-xs text-ink/60">Open Source Contributor</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Collaborated with maintainers of ModelFlow on GitHub.</p>
-                     <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Collaborated with maintainers of ModelFlow on GitHub.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
 
                 <!-- Volunteer 3 -->
-                <button onclick="openModal('topmate')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <button onclick="openModal('topmate')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-emerald-100 p-2 rounded-full mr-3 text-emerald-600">
+                        <div class="bg-brand-green/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Topmate Research Mentor</h3>
-                            <p class="text-xs text-slate-500">Mentor & Content Creator</p>
+                            <h3 class="font-bold text-ink text-sm">Topmate Research Mentor</h3>
+                            <p class="text-xs text-ink/60">Mentor &amp; Content Creator</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Mentored undergraduates globally on education and research.</p>
-                     <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Mentored undergraduates globally on education and research.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
 
                  <!-- Volunteer 4 -->
-                 <button onclick="openModal('shell')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                 <button onclick="openModal('shell')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-orange-100 p-2 rounded-full mr-3 text-orange-600">
+                        <div class="bg-brand-orange/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Shell RISE</h3>
-                            <p class="text-xs text-slate-500">Ambassador</p>
+                            <h3 class="font-bold text-ink text-sm">Shell RISE</h3>
+                            <p class="text-xs text-ink/60">Ambassador</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Developed and implemented sustainable initiatives.</p>
-                     <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Developed and implemented sustainable initiatives.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
 
                 <!-- Volunteer 5 -->
-                 <button onclick="openModal('nayapay')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                 <button onclick="openModal('nayapay')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-pink-100 p-2 rounded-full mr-3 text-pink-600">
+                        <div class="bg-brand-pink/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">NayaPay</h3>
-                            <p class="text-xs text-slate-500">Campus Ambassador</p>
+                            <h3 class="font-bold text-ink text-sm">NayaPay</h3>
+                            <p class="text-xs text-ink/60">Campus Ambassador</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Executed innovative marketing strategies.</p>
-                     <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Executed innovative marketing strategies.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
                  <!-- Volunteer 6 -->
-                 <button onclick="openModal('paklaunch')" class="text-left w-full bg-white p-6 rounded-lg shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                 <button onclick="openModal('paklaunch')" class="reveal-up lift text-left w-full bg-paper p-6 rounded-2xl border-2 border-ink shadow-hard hover:shadow-hard-lg transition focus:outline-none">
                     <div class="flex items-center mb-4">
-                        <div class="bg-teal-100 p-2 rounded-full mr-3 text-teal-600">
+                        <div class="bg-brand-green/20 border-2 border-ink p-2 rounded-full mr-3 text-ink">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">PakLaunch</h3>
-                            <p class="text-xs text-slate-500">Campus Representative</p>
+                            <h3 class="font-bold text-ink text-sm">PakLaunch</h3>
+                            <p class="text-xs text-ink/60">Campus Representative</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 mb-2">Facilitated communication and nurtured brand identity.</p>
-                     <span class="text-xs text-blue-500 font-medium">Read details &rarr;</span>
+                    <p class="text-sm text-ink/70 mb-2">Facilitated communication and nurtured brand identity.</p>
+                    <span class="text-xs text-brand-orange font-bold">Read details &rarr;</span>
                 </button>
 
             </div>
         </div>
     </section>
-    
+
     <!-- Publications & Awards -->
-    <section id="publications" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 section-fade">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Honors & Publications
-            </h2>
-            
+    <section id="publications" class="py-24 bg-paper border-t-2 border-ink">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 mb-4 bg-cream border-2 border-ink rounded-full text-xs font-bold uppercase tracking-wide">
+                <span class="text-brand-orange">05</span> / Recognition
+            </div>
+            <h2 class="reveal-up text-4xl font-bold text-ink mb-12 font-display">Honors &amp; Publications</h2>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-slate-50 p-8 rounded-xl shadow-sm border border-slate-100">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <div class="reveal-up bg-cream p-8 rounded-2xl border-2 border-ink shadow-hard">
+                    <h3 class="font-display text-xl font-bold text-ink mb-6 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-brand-yellow" fill="currentColor" stroke="#15161A" stroke-width="0.5" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         Awards
                     </h3>
                     <ul class="space-y-4">
-                        <li class="pb-4 border-b border-slate-200 last:border-0">
-                            <div class="font-bold text-slate-900">Mitacs Globalink Research Award</div>
-                            <div class="text-sm text-slate-500 mt-1">2024-2025 &bull; Mitacs Canada</div>
-                            <div class="text-sm text-slate-600 mt-2">Highly competitive grant to conduct funded research in Canada.</div>
+                        <li class="pb-4 border-b-2 border-ink/10 last:border-0">
+                            <div class="font-bold text-ink">Mitacs Globalink Research Award</div>
+                            <div class="text-sm text-ink/50 mt-1">2024-2025 &bull; Mitacs Canada</div>
+                            <div class="text-sm text-ink/70 mt-2">Highly competitive grant to conduct funded research in Canada.</div>
                         </li>
-                        <li class="pb-4 border-b border-slate-200 last:border-0">
-                            <div class="font-bold text-slate-900">Innovista Startup League Winner</div>
-                            <div class="text-sm text-slate-500 mt-1">2025 &bull; Innovista</div>
-                            <div class="text-sm text-slate-600 mt-2">Recognized for EdTech solution with comprehensive business feasibility.</div>
+                        <li class="pb-4 border-b-2 border-ink/10 last:border-0">
+                            <div class="font-bold text-ink">Innovista Startup League Winner</div>
+                            <div class="text-sm text-ink/50 mt-1">2025 &bull; Innovista</div>
+                            <div class="text-sm text-ink/70 mt-2">Recognized for EdTech solution with comprehensive business feasibility.</div>
                         </li>
-<li class="pb-4 border-b border-slate-200 last:border-0">
-                            <div class="font-bold text-slate-900">Uraan Hackathon Winner</div>
-                            <div class="text-sm text-slate-500 mt-1">2023 &bull; LUMS (Gender, Mobility & Tech)</div>
-                            <div class="text-sm text-slate-600 mt-2">Developed a wearable safety tool for women designed to function in areas with no internet connectivity.</div>
+                        <li class="pb-4 border-b-2 border-ink/10 last:border-0">
+                            <div class="font-bold text-ink">Uraan Hackathon Winner</div>
+                            <div class="text-sm text-ink/50 mt-1">2023 &bull; LUMS (Gender, Mobility &amp; Tech)</div>
+                            <div class="text-sm text-ink/70 mt-2">Developed a wearable safety tool for women designed to function in areas with no internet connectivity.</div>
                         </li>
-                         <li class="pb-4 border-b border-slate-200 last:border-0">
-                            <div class="font-bold text-slate-900">Microsoft Imagine Cup</div>
-                            <div class="text-sm text-slate-500 mt-1"> 2023 &bull; National Finalist</div>
-			    <div class="text-sm text-slate-600 mt-2">Developed an astronomy literacy app aimed at improving science education for young children in rural areas</div>
-
+                        <li class="pb-4 border-b-2 border-ink/10 last:border-0">
+                            <div class="font-bold text-ink">Microsoft Imagine Cup</div>
+                            <div class="text-sm text-ink/50 mt-1">2023 &bull; National Finalist</div>
+                            <div class="text-sm text-ink/70 mt-2">Developed an astronomy literacy app aimed at improving science education for young children in rural areas</div>
                         </li>
                     </ul>
                 </div>
-                
-                <div class="bg-slate-50 p-8 rounded-xl shadow-sm border border-slate-100">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
-                       <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+
+                <div class="reveal-up bg-cream p-8 rounded-2xl border-2 border-ink shadow-hard">
+                    <h3 class="font-display text-xl font-bold text-ink mb-6 flex items-center">
+                       <svg class="w-5 h-5 mr-2 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         Publications
                     </h3>
                     <ul class="space-y-4">
-                      <li class="pb-4 border-b border-slate-200 last:border-0">
+                      <li class="pb-4 border-b-2 border-ink/10 last:border-0">
                             <a href="https://ieeexplore.ieee.org/abstract/document/10374955" target="_blank" class="block group">
-                                <div class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Deciphering Faces: Enhancing Emotion Detection</div>
-                                <div class="text-xs text-blue-600 mt-1 font-medium uppercase tracking-wide">Published at ICET</div>
+                                <div class="font-bold text-ink text-sm group-hover:text-brand-orange transition-colors">Deciphering Faces: Enhancing Emotion Detection</div>
+                                <div class="text-xs text-brand-orange mt-1 font-bold uppercase tracking-wide">Published at ICET</div>
                             </a>
                         </li>
-                          <li class="pb-4 border-b border-slate-200 last:border-0">
+                          <li class="pb-4 border-b-2 border-ink/10 last:border-0">
                              <a href="https://ieeexplore.ieee.org/abstract/document/10375063" target="_blank" class="block group">
-                                <div class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">AdaptiveCloset: Reinforcement Learning in Clothing</div>
-                                <div class="text-xs text-blue-600 mt-1 font-medium uppercase tracking-wide">Published at ICET</div>
+                                <div class="font-bold text-ink text-sm group-hover:text-brand-orange transition-colors">AdaptiveCloset: Reinforcement Learning in Clothing</div>
+                                <div class="text-xs text-brand-orange mt-1 font-bold uppercase tracking-wide">Published at ICET</div>
                             </a>
                         </li>
-                      <li class="pb-4 border-b border-slate-200 last:border-0">
+                      <li class="pb-4 border-b-2 border-ink/10 last:border-0">
                              <a href="https://sciforum.net/paper/view/20771" target="_blank" class="block group">
-                                <div class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Customized Learning for ADHD</div>
-                                <div class="text-xs text-blue-600 mt-1 font-medium uppercase tracking-wide">MDPI Applied Sciences</div>
+                                <div class="font-bold text-ink text-sm group-hover:text-brand-orange transition-colors">Customized Learning for ADHD</div>
+                                <div class="text-xs text-brand-orange mt-1 font-bold uppercase tracking-wide">MDPI Applied Sciences</div>
                             </a>
                         </li>
-                         <li class="pb-4 border-b border-slate-200 last:border-0">
+                         <li class="pb-4 border-b-2 border-ink/10 last:border-0">
                              <a href="https://ieeexplore.ieee.org/abstract/document/10414202" target="_blank" class="block group">
-                                <div class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Robotrolley: Customer Following Trolley</div>
-                                <div class="text-xs text-blue-600 mt-1 font-medium uppercase tracking-wide">Published at ICOSST</div>
+                                <div class="font-bold text-ink text-sm group-hover:text-brand-orange transition-colors">Robotrolley: Customer Following Trolley</div>
+                                <div class="text-xs text-brand-orange mt-1 font-bold uppercase tracking-wide">Published at ICOSST</div>
                             </a>
                         </li>
- <li class="pb-4 border-b border-slate-200 last:border-0">
+                        <li class="pb-4 border-b-2 border-ink/10 last:border-0">
                              <a href="https://ieeexplore.ieee.org/abstract/document/10581187" target="_blank" class="block group">
-                                <div class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Development of a Smart Shoe for Blind and Visual Impaired People</div>
-                                <div class="text-xs text-blue-600 mt-1 font-medium uppercase tracking-wide">Published at ICECT</div>
+                                <div class="font-bold text-ink text-sm group-hover:text-brand-orange transition-colors">Development of a Smart Shoe for Blind and Visual Impaired People</div>
+                                <div class="text-xs text-brand-orange mt-1 font-bold uppercase tracking-wide">Published at ICECT</div>
                             </a>
                         </li>
-
                     </ul>
                 </div>
             </div>
@@ -512,33 +573,36 @@
     </section>
 
     <!-- Footer / Contact -->
-    <footer id="contact" class="bg-dark text-slate-300 py-16">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
-                <div class="mb-8 md:mb-0 text-center md:text-left">
-                    <h2 class="text-2xl font-bold text-white mb-2">Let's Build Something Together</h2>
-                    <p class="text-slate-400">Open to collaborations in AI, EdTech, and Software Development.</p>
+    <footer id="contact" class="bg-ink text-cream py-20 border-t-2 border-ink relative overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="reveal-up flex flex-col md:flex-row justify-between items-center mb-14 gap-8">
+                <div class="text-center md:text-left">
+                    <h2 class="font-display text-3xl md:text-4xl font-bold text-paper mb-3">Let's build something <span class="marker text-ink">together</span></h2>
+                    <p class="text-cream/60">Open to collaborations in AI, EdTech, and Software Development.</p>
                 </div>
-                <div class="flex space-x-6">
-                     <a href="https://github.com/rafaym1/" class="text-slate-400 hover:text-white transition-colors">
-                        <span class="sr-only">GitHub</span>
-                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    </a>
-                    <a href="https://www.linkedin.com/in/rafay-mustafa" class="text-slate-400 hover:text-white transition-colors">
-                        <span class="sr-only">LinkedIn</span>
-                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                    </a>
-                    <a href="mailto:rafaym30@gmail.com" class="text-slate-400 hover:text-white transition-colors">
-                        <span class="sr-only">Email</span>
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    </a>
-                    <a href="https://instagram.com/confuged_baji" class="text-slate-400 hover:text-white transition-colors">
-                         <span class="sr-only">Blog</span>
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-14c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6zm0 10c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg>
-                    </a>
-                </div>
+                <a href="mailto:rafaym30@gmail.com" class="lift shrink-0 px-8 py-3.5 text-base font-bold text-ink bg-brand-yellow rounded-full border-2 border-cream shadow-[4px_4px_0_0_#EFEEE6] hover:shadow-[7px_7px_0_0_#EFEEE6] transition">
+                    Say Hello
+                </a>
             </div>
-            <div class="border-t border-slate-800 pt-8 text-center text-slate-500 text-sm">
+            <div class="reveal-up flex justify-center md:justify-start space-x-4 mb-12">
+                 <a href="https://github.com/rafaym1/" class="w-11 h-11 flex items-center justify-center bg-transparent border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition-colors text-cream/70">
+                    <span class="sr-only">GitHub</span>
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                </a>
+                <a href="https://www.linkedin.com/in/rafay-mustafa" class="w-11 h-11 flex items-center justify-center bg-transparent border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition-colors text-cream/70">
+                    <span class="sr-only">LinkedIn</span>
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+                <a href="mailto:rafaym30@gmail.com" class="w-11 h-11 flex items-center justify-center bg-transparent border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition-colors text-cream/70">
+                    <span class="sr-only">Email</span>
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </a>
+                <a href="https://instagram.com/confuged_baji" class="w-11 h-11 flex items-center justify-center bg-transparent border-2 border-cream/30 rounded-full hover:border-brand-yellow hover:text-brand-yellow transition-colors text-cream/70">
+                     <span class="sr-only">Blog</span>
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-14c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6zm0 10c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg>
+                </a>
+            </div>
+            <div class="reveal-up border-t border-cream/10 pt-8 text-center md:text-left text-cream/40 text-sm">
                 <p>&copy; 2025 Rafay Mustafa. All rights reserved.</p>
             </div>
         </div>
@@ -548,33 +612,40 @@
     <div id="info-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <!-- Backdrop -->
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div id="modal-backdrop" class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity opacity-0" aria-hidden="true" onclick="closeModal()"></div>
+            <div id="modal-backdrop" class="fixed inset-0 bg-ink bg-opacity-70 transition-opacity opacity-0" aria-hidden="true" onclick="closeModal()"></div>
 
             <!-- This element is to trick the browser into centering the modal contents. -->
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <!-- Modal Panel -->
-            <div id="modal-panel" class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full modal-enter">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div id="modal-panel" class="relative inline-block align-bottom bg-paper rounded-2xl border-2 border-ink text-left overflow-hidden shadow-hard-lg transform transition sm:my-8 sm:align-middle sm:max-w-lg w-full modal-enter">
+                <div class="bg-paper px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                            <h3 class="text-2xl leading-6 font-bold text-slate-900 mb-2" id="modal-title">Project Title</h3>
+                            <h3 class="font-display text-2xl leading-6 font-bold text-ink mb-2" id="modal-title">Project Title</h3>
                             <div class="mt-4">
-                                <p class="text-sm text-slate-600 leading-relaxed" id="modal-description">
+                                <p class="text-sm text-ink/70 leading-relaxed" id="modal-description">
                                     Description goes here.
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors" onclick="closeModal()">
+                <div class="bg-cream px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-ink">
+                    <button type="button" class="w-full inline-flex justify-center rounded-full border-2 border-ink shadow-hard-sm px-5 py-2.5 bg-brand-yellow text-base font-bold text-ink hover:shadow-hard focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition" onclick="closeModal()">
                         Close
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+        .modal-exit { opacity: 1; transform: scale(1); }
+        .modal-exit-active { opacity: 0; transform: scale(0.95); transition: opacity 0.2s ease-in, transform 0.2s ease-in; }
+    </style>
 
     <script>
         // Data for Modals
@@ -634,48 +705,36 @@
 
             modalTitle.innerText = data.title;
             modalDesc.innerText = data.description;
-            
+
             modal.classList.remove('hidden');
-            // Trigger animation
             setTimeout(() => {
                 modalBackdrop.classList.remove('opacity-0');
                 modalPanel.classList.remove('modal-enter');
                 modalPanel.classList.add('modal-enter-active');
             }, 10);
-            
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+            document.body.style.overflow = 'hidden';
+            if (window.__lenis) window.__lenis.stop();
         }
 
         function closeModal() {
             modalBackdrop.classList.add('opacity-0');
             modalPanel.classList.remove('modal-enter-active');
             modalPanel.classList.add('modal-exit-active');
-            
+
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modalPanel.classList.remove('modal-exit-active');
-                modalPanel.classList.add('modal-enter'); // Reset for next open
+                modalPanel.classList.add('modal-enter');
                 document.body.style.overflow = '';
+                if (window.__lenis) window.__lenis.start();
             }, 200);
         }
 
-        // Close on Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape" && !modal.classList.contains('hidden')) {
                 closeModal();
             }
-        });
-
-        // --- Existing Script Below ---
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
         });
 
         // Mobile Menu Toggle
@@ -683,38 +742,132 @@
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
         }
-        
         document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
-
-        // Intersection Observer for fade-in animations
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.section-fade').forEach(section => {
-            observer.observe(section);
-        });
 
         // Navbar Scroll Effect
         window.addEventListener('scroll', () => {
             const navbar = document.getElementById('navbar');
             if (window.scrollY > 20) {
-                navbar.classList.add('shadow-md');
+                navbar.classList.add('border-ink/10', 'shadow-sm');
             } else {
-                navbar.classList.remove('shadow-md');
+                navbar.classList.remove('border-ink/10', 'shadow-sm');
             }
         });
+
+        // --- Smooth scrolling (Lenis) + scroll-driven reveals (GSAP ScrollTrigger) ---
+        (function () {
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            let lenis = null;
+            if (!prefersReduced && window.Lenis) {
+                lenis = new Lenis({
+                    duration: 1.1,
+                    smoothWheel: true,
+                    wheelMultiplier: 1,
+                    touchMultiplier: 1.2,
+                });
+                window.__lenis = lenis;
+
+                lenis.on('scroll', ScrollTrigger.update);
+                gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+                gsap.ticker.lagSmoothing(0);
+            }
+
+            // Smooth anchor navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const targetId = this.getAttribute('href');
+                    const target = document.querySelector(targetId);
+                    if (!target) return;
+                    e.preventDefault();
+                    if (lenis) {
+                        lenis.scrollTo(target, { offset: -70 });
+                    } else {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            if (prefersReduced || !window.gsap) {
+                document.querySelectorAll('.reveal-up, .reveal-scale').forEach(el => {
+                    el.style.opacity = 1;
+                    el.style.transform = 'none';
+                });
+                return;
+            }
+
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Fade-up reveals, staggered within each section
+            document.querySelectorAll('section, footer').forEach(section => {
+                const items = section.querySelectorAll('.reveal-up');
+                if (items.length) {
+                    gsap.to(items, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.7,
+                        ease: 'power3.out',
+                        stagger: 0.08,
+                        scrollTrigger: {
+                            trigger: section,
+                            start: 'top 80%',
+                            once: true,
+                        }
+                    });
+                }
+                const scaleItems = section.querySelectorAll('.reveal-scale');
+                if (scaleItems.length) {
+                    gsap.to(scaleItems, {
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.7,
+                        ease: 'back.out(1.6)',
+                        scrollTrigger: {
+                            trigger: section,
+                            start: 'top 80%',
+                            once: true,
+                        }
+                    });
+                }
+            });
+
+            // Parallax floating shapes in hero
+            document.querySelectorAll('.float-shape').forEach(shape => {
+                const speed = parseFloat(shape.getAttribute('data-speed')) || 0.3;
+                gsap.to(shape, {
+                    y: () => -150 * speed,
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: '#home',
+                        start: 'top top',
+                        end: 'bottom top',
+                        scrub: true,
+                    }
+                });
+            });
+
+            ScrollTrigger.refresh();
+        })();
+
+        // Custom cursor (desktop / pointer devices only)
+        (function () {
+            if (window.matchMedia('(hover: none), (max-width: 768px)').matches) return;
+            const dot = document.getElementById('cursor-dot');
+            if (!dot || !window.gsap) return;
+
+            const setX = gsap.quickTo(dot, 'x', { duration: 0.35, ease: 'power3' });
+            const setY = gsap.quickTo(dot, 'y', { duration: 0.35, ease: 'power3' });
+
+            window.addEventListener('mousemove', (e) => {
+                setX(e.clientX);
+                setY(e.clientY);
+            });
+
+            document.querySelectorAll('a, button').forEach(el => {
+                el.addEventListener('mouseenter', () => dot.classList.add('grow'));
+                el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
+            });
+        })();
     </script>
 </body>
 </html>
